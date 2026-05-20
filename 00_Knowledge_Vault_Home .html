@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DBRE™ Knowledge Vault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:        #C9A84C;
+      --gold-light:  #D4AF6A;
+      --gold-mid:    #B8892A;
+      --navy:        #2C2C2C;
+      --navy-soft:   #333333;
+      --text:        #1a1a1a;
+      --text-muted:  #555;
+      --bg:          #F9F7F4;
+      --bg-card:     #FFFFFF;
+      --border:      #E8E2D9;
+      --radius:      10px;
+      --shadow:      0 2px 16px rgba(0,0,0,0.07);
+      --shadow-hover:0 6px 28px rgba(0,0,0,0.13);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Header */
+    .site-header { background: var(--navy); padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--gold); }
+    .site-header .brand { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.1rem; letter-spacing: 0.08em; text-decoration: none; }
+    .site-header .breadcrumb { font-size: 0.7rem; color: rgba(255,255,255,0.45); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    /* Page Title */
+    .page-title-bar { background: var(--navy); text-align: center; padding: 36px 40px 28px; }
+    .page-title-bar h1 { font-family: 'Playfair Display', serif; color: #fff; font-size: 2rem; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .page-title-bar .tagline { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; }
+
+    /* Nav Tabs */
+    .nav-tabs { background: var(--navy-soft); border-bottom: 1px solid rgba(201,168,76,0.25); display: flex; justify-content: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; }
+    .nav-tabs a { display: inline-block; padding: 13px 20px; font-size: 0.67rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(255,255,255,0.55); text-decoration: none; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .nav-tabs a:hover, .nav-tabs a.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* Search */
+    .search-bar { background: var(--navy); padding: 16px 40px; display: flex; justify-content: center; }
+    .search-wrap { position: relative; width: 100%; max-width: 540px; }
+    .search-wrap .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.35); font-size: 1rem; }
+    .search-wrap input { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(201,168,76,0.25); border-radius: 6px; color: #fff; padding: 10px 14px 10px 38px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; outline: none; transition: border-color 0.2s; }
+    .search-wrap input::placeholder { color: rgba(255,255,255,0.3); }
+    .search-wrap input:focus { border-color: var(--gold); }
+
+    /* Main */
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Back link */
+    .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-mid); text-decoration: none; margin-bottom: 32px; transition: color 0.2s; }
+    .back-link:hover { color: var(--gold); }
+
+    /* Section Header */
+    .section-header { margin-bottom: 32px; }
+    .section-header .eyebrow { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+    .section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+    .section-header .rule { width: 48px; height: 2px; background: var(--gold); margin-bottom: 12px; }
+    .section-header p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.65; max-width: 640px; }
+
+    /* Card Grid */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card-grid.two-col { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+
+    /* Folder Card */
+    .folder-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; position: relative; overflow: hidden; }
+    .folder-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); opacity: 0; transition: opacity 0.2s; }
+    .folder-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--gold-light); }
+    .folder-card:hover::before { opacity: 1; }
+    .card-icon { font-size: 1.5rem; line-height: 1; }
+    .card-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-mid); }
+    .card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; color: var(--navy); line-height: 1.3; }
+    .card-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+    .card-tag { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-mid); background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 3px; padding: 2px 7px; }
+    .card-cta { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-top: 6px; }
+
+    /* Overview / Home */
+    .overview-intro { margin-bottom: 36px; }
+    .overview-intro .eyebrow { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .overview-intro h2 { font-family: 'Playfair Display', serif; font-size: 1.75rem; color: var(--navy); margin-bottom: 8px; }
+    .overview-intro .rule { width: 48px; height: 2px; background: var(--gold); margin-bottom: 14px; }
+    .overview-intro p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.65; max-width: 580px; }
+    .section-count { display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-mid); background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); border-radius: 4px; padding: 3px 10px; margin-bottom: 28px; }
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .overview-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 28px; text-decoration: none; color: var(--text); display: flex; gap: 18px; align-items: flex-start; box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+    .overview-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); opacity: 0; transition: opacity 0.2s; }
+    .overview-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--gold-light); }
+    .overview-card:hover::before { opacity: 1; }
+    .overview-card .num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: rgba(201,168,76,0.3); line-height: 1; min-width: 36px; }
+    .overview-card .body { flex: 1; }
+    .overview-card .body h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+    .overview-card .body p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+
+    /* Module Cards */
+    .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .module-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: var(--text); display: flex; gap: 14px; align-items: flex-start; box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; }
+    .module-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--gold-light); }
+    .module-card .mod-num { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: rgba(201,168,76,0.35); line-height: 1; min-width: 30px; }
+    .module-card .mod-body h4 { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+    .module-card .mod-body p { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px; }
+    .lesson-count { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-mid); }
+
+    /* Forms Cards */
+    .forms-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; position: relative; overflow: hidden; }
+    .forms-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); opacity: 0; transition: opacity 0.2s; }
+    .forms-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--gold-light); }
+    .forms-card:hover::before { opacity: 1; }
+    .forms-card .form-name { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; color: var(--navy); }
+    .forms-card .form-cta { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+
+    /* Search Results */
+    #search-results { display: none; }
+    #search-results.visible { display: block; }
+    .no-results { text-align: center; padding: 48px 24px; color: var(--text-muted); font-size: 0.82rem; }
+
+    /* Footer */
+    .site-footer { background: var(--navy); border-top: 1px solid rgba(201,168,76,0.2); text-align: center; padding: 20px 24px; }
+    .site-footer p { font-size: 0.65rem; color: rgba(255,255,255,0.3); letter-spacing: 0.12em; text-transform: uppercase; }
+    .site-footer span { color: rgba(201,168,76,0.5); margin: 0 8px; }
+
+    @media (max-width: 640px) {
+      .site-header { padding: 14px 20px; }
+      main { padding: 28px 16px 60px; }
+      .nav-tabs a { padding: 11px 12px; font-size: 0.6rem; }
+      .page-title-bar h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="#" class="brand" onclick="showPanel('home'); return false;">Dana Blanks Real Estate · DBRE™</a>
+  <span class="breadcrumb">The Executive Suite · 01 · The Knowledge Vault</span>
+</header>
+
+<div class="page-title-bar">
+  <h1>The Knowledge Vault</h1>
+  <div class="tagline">Everything you need to serve at the highest level.</div>
+</div>
+
+<nav class="nav-tabs" id="main-nav">
+  <a href="#" class="active" onclick="showPanel('home'); return false;">Home</a>
+  <a href="#" onclick="showPanel('blueprint'); return false;">Operational Blueprint</a>
+  <a href="#" onclick="showPanel('mastery'); return false;">Mastery Gallery</a>
+  <a href="#" onclick="showPanel('partners'); return false;">Preferred Partners</a>
+  <a href="#" onclick="showPanel('resources'); return false;">Advisor Resources</a>
+  <a href="#" onclick="showPanel('training'); return false;">Training Library</a>
+  <a href="#" onclick="showPanel('forms'); return false;">Forms</a>
+</nav>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="icon">⌕</span>
+    <input type="text" id="search-input" placeholder="Type to filter across all sections" oninput="handleSearch(this.value)" />
+  </div>
+</div>
+
+<main>
+
+  <div id="search-results">
+    <div id="search-output"></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="panel active" id="panel-home">
+    <div class="overview-intro">
+      <div class="eyebrow">Knowledge Vault</div>
+      <h2>Welcome.</h2>
+      <div class="rule"></div>
+      <p>This is your complete reference library. Click any section below to explore its contents — or use the navigation tabs above to jump directly to a section.</p>
+    </div>
+    <div class="section-count">6 sections</div>
+    <div class="overview-grid">
+
+      <div class="overview-card" onclick="showPanel('blueprint')">
+        <div class="num">01</div>
+        <div class="body">
+          <h3>Operational Blueprint</h3>
+          <p>The how-to of the firm. All transaction workflows, scripts, and protocols for listings, buyers, land, and dual agency.</p>
+          <div class="card-tags"><span class="card-tag">Listings</span><span class="card-tag">Land</span><span class="card-tag">Buyers</span><span class="card-tag">Dual Agency</span><span class="card-tag">Scripts</span><span class="card-tag">Checklists</span></div>
+        </div>
+      </div>
+
+      <div class="overview-card" onclick="showPanel('mastery')">
+        <div class="num">02</div>
+        <div class="body">
+          <h3>Mastery Gallery</h3>
+          <p>High-level excellence protocols and operational SOPs. Client care, compliance, policies, and financial governance.</p>
+          <div class="card-tags"><span class="card-tag">Protocols</span><span class="card-tag">Compliance</span><span class="card-tag">Policies</span><span class="card-tag">Finance</span></div>
+        </div>
+      </div>
+
+      <div class="overview-card" onclick="showPanel('partners')">
+        <div class="num">03</div>
+        <div class="body">
+          <h3>Preferred Partners</h3>
+          <p>Your vetted vendor network — closing attorneys, lenders, inspectors, stagers, contractors, and more.</p>
+          <div class="card-tags"><span class="card-tag">Vendors</span><span class="card-tag">Directory</span><span class="card-tag">Contacts</span></div>
+        </div>
+      </div>
+
+      <div class="overview-card" onclick="showPanel('resources')">
+        <div class="num">04</div>
+        <div class="body">
+          <h3>Advisor Resources</h3>
+          <p>Everything an advisor needs to run their business — onboarding, lead generation, business planning, forms, and compensation.</p>
+          <div class="card-tags"><span class="card-tag">Onboarding</span><span class="card-tag">Lead Gen</span><span class="card-tag">Business Plan</span><span class="card-tag">Forms</span></div>
+        </div>
+      </div>
+
+      <div class="overview-card" onclick="showPanel('training')">
+        <div class="num">05</div>
+        <div class="body">
+          <h3>Training Library</h3>
+          <p>The complete advisor curriculum — 10 modules covering orientation, client care, operations, prospecting, and leadership.</p>
+          <div class="card-tags"><span class="card-tag">10 Modules</span><span class="card-tag">Videos</span><span class="card-tag">Curriculum</span></div>
+        </div>
+      </div>
+
+      <div class="overview-card" onclick="showPanel('forms')">
+        <div class="num">06</div>
+        <div class="body">
+          <h3>Forms &amp; Quick Links</h3>
+          <p>Direct links to all advisor-facing DBRE forms — transaction initiation, referrals, team formation, CDA requests, and more.</p>
+          <div class="card-tags"><span class="card-tag">Transactions</span><span class="card-tag">Referrals</span><span class="card-tag">CDA</span><span class="card-tag">Team</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 01 OPERATIONAL BLUEPRINT -->
+  <div class="panel" id="panel-blueprint">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">01 · Operational Blueprint</div>
+      <h2>The how-to of the firm</h2>
+      <div class="rule"></div>
+      <p>All transaction workflows, scripts, checklists, and marketing tools — organized by transaction type. Each folder contains everything you need for that type of deal from first contact to closing.</p>
+    </div>
+    <div class="card-grid">
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FListing%20Excellence%20Workflow" target="_blank">
+        <div class="card-icon">📋</div>
+        <div class="card-label">Seller Transactions</div>
+        <div class="card-title">Listing Excellence Workflow</div>
+        <div class="card-desc">Everything for a seller-side transaction — consultation scripts, marketing plans, listing walkthroughs, and research guides.</div>
+        <div class="card-tags"><span class="card-tag">Seller Consult &amp; Prep</span><span class="card-tag">Marketing Plans</span><span class="card-tag">Walkthroughs &amp; Research</span><span class="card-tag">Licensee Email Marketing</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FLand%20%26%20Specialty%20Listings" target="_blank">
+        <div class="card-icon">🌿</div>
+        <div class="card-label">Land Transactions</div>
+        <div class="card-title">Land &amp; Specialty Listings</div>
+        <div class="card-desc">Land-specific listing tools — how-to guides, research checklists, seller consultations, and marketing plans for land transactions.</div>
+        <div class="card-tags"><span class="card-tag">Land Seller Consult</span><span class="card-tag">Land Research Checklists</span><span class="card-tag">Land Marketing Plans</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FBuyer%20Excellence%20Workflows" target="_blank">
+        <div class="card-icon">🔑</div>
+        <div class="card-label">Buyer Transactions</div>
+        <div class="card-title">Buyer Excellence Workflows</div>
+        <div class="card-desc">All buyer-side tools — consultation scripts, Gallery Protocols for residential and land buyers, and research tools.</div>
+        <div class="card-tags"><span class="card-tag">Buyer Consult Scripts</span><span class="card-tag">Buyer Gallery Protocol</span><span class="card-tag">Land Buyer Consult</span><span class="card-tag">Residential Research</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FDual%20Agent%20Workflows" target="_blank">
+        <div class="card-icon">⚖️</div>
+        <div class="card-label">Dual Agency</div>
+        <div class="card-title">Dual Agent Workflows</div>
+        <div class="card-desc">Protocols and procedures for dual agency transactions. Review before representing both sides in any transaction.</div>
+        <div class="card-tags"><span class="card-tag">Dual Agency Protocol</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 02 MASTERY GALLERY -->
+  <div class="panel" id="panel-mastery">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">02 · Mastery Gallery</div>
+      <h2>Protocols · Compliance · Governance</h2>
+      <div class="rule"></div>
+      <p>High-level SOPs and operational standards. This section covers how we serve clients, how we stay compliant, and how the financial side of the firm operates.</p>
+    </div>
+    <div class="card-grid">
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FClient%20Care%20Protocols" target="_blank">
+        <div class="card-icon">🤝</div>
+        <div class="card-label">Client Care</div>
+        <div class="card-title">Client Care Protocols</div>
+        <div class="card-desc">Excellence standards for serving buyers, sellers, and investors. Includes Advisor Boardroom protocols and mindset resources.</div>
+        <div class="card-tags"><span class="card-tag">Buyers</span><span class="card-tag">Sellers</span><span class="card-tag">Advisor Boardroom</span><span class="card-tag">Mindset</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FOperational%20Compliance" target="_blank">
+        <div class="card-icon">📜</div>
+        <div class="card-label">Compliance</div>
+        <div class="card-title">Operational Compliance</div>
+        <div class="card-desc">Official firm policies (PDF and source), plus all required forms and acknowledgements. Your compliance reference library.</div>
+        <div class="card-tags"><span class="card-tag">Official Policies (PDFs)</span><span class="card-tag">Policy Sources (HTML)</span><span class="card-tag">Forms &amp; Acknowledgements</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FFinancial%20Governance" target="_blank">
+        <div class="card-icon">💰</div>
+        <div class="card-label">Finance</div>
+        <div class="card-title">Financial Governance</div>
+        <div class="card-desc">Wire transfer protocols, advisor platform participation details, and commission disbursement procedures.</div>
+        <div class="card-tags"><span class="card-tag">Wire Transfer Protocol</span><span class="card-tag">Advisor Platform Models</span><span class="card-tag">Commission Disbursement</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 03 PREFERRED PARTNERS -->
+  <div class="panel" id="panel-partners">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">03 · Preferred Partners</div>
+      <h2>Your vetted vendor network</h2>
+      <div class="rule"></div>
+      <p>Every vendor in this directory has been vetted by DBRE. Use the interactive directory for the full searchable list — or nominate a new vendor using the Preferred Partner Nomination form.</p>
+    </div>
+    <div class="card-grid two-col">
+
+      <a class="folder-card" href="https://dblanks2.github.io/Preferred-Partners-Directory/Preferred%20Partners%20Directory.html" target="_blank">
+        <div class="card-icon">📖</div>
+        <div class="card-label">Directory</div>
+        <div class="card-title">Preferred Partners Directory</div>
+        <div class="card-desc">The full searchable vendor directory — closing attorneys, lenders, inspectors, stagers, contractors, cleaners, movers, and more.</div>
+        <div class="card-tags"><span class="card-tag">Searchable by category</span><span class="card-tag">Contact details</span><span class="card-tag">Website links</span></div>
+        <div class="card-cta">Open Directory ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://forms.cloud.microsoft/r/tyYNZheDk2" target="_blank">
+        <div class="card-icon">✨</div>
+        <div class="card-label">Nominations</div>
+        <div class="card-title">Preferred Partner Nomination</div>
+        <div class="card-desc">Know a great vendor who should be in our network? Submit a nomination using this form. All nominations are reviewed by DBRE leadership.</div>
+        <div class="card-tags"><span class="card-tag">Nomination form</span></div>
+        <div class="card-cta">Open Form ↗</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 04 ADVISOR RESOURCES -->
+  <div class="panel" id="panel-resources">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">04 · Advisor Resources</div>
+      <h2>Everything you need to run your business</h2>
+      <div class="rule"></div>
+      <p>From your first day onboarding through running a full pipeline — this section has your business tools, lead generation resources, planning documents, and forms.</p>
+    </div>
+    <div class="card-grid">
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FOnboarding%20%26%20Platform%20Setup" target="_blank">
+        <div class="card-icon">🚀</div>
+        <div class="card-label">Setup</div>
+        <div class="card-title">Onboarding &amp; Platform Setup</div>
+        <div class="card-desc">Everything needed to get up and running — advisor platform models, compensation structure, tools setup guides, and profile setup.</div>
+        <div class="card-tags"><span class="card-tag">Advisor Platform Models</span><span class="card-tag">Compensation &amp; Fees</span><span class="card-tag">Tools &amp; Setup Guides</span><span class="card-tag">Profile Setup</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FLead%20Generation%20%26%20Distribution" target="_blank">
+        <div class="card-icon">🎯</div>
+        <div class="card-label">Lead Gen</div>
+        <div class="card-title">Lead Generation &amp; Distribution</div>
+        <div class="card-desc">Lead generation scripts and plans, lead distribution policy, contact scripts, and the NC Active Broker List.</div>
+        <div class="card-tags"><span class="card-tag">Lead Distribution Policy</span><span class="card-tag">Lead Gen Plans &amp; Scripts</span><span class="card-tag">Contact Submission Guide</span><span class="card-tag">NC Active Broker List</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FBusiness%20Planning" target="_blank">
+        <div class="card-icon">📈</div>
+        <div class="card-label">Planning</div>
+        <div class="card-title">Business Planning</div>
+        <div class="card-desc">Advisor business plans, goals planning worksheets, and transaction filing checklists for both residential and land.</div>
+        <div class="card-tags"><span class="card-tag">Advisor Business Plans</span><span class="card-tag">Goals Planner</span><span class="card-tag">Buyer Filing Checklists</span><span class="card-tag">Seller Filing Checklists</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FForms%20%26%20Templates" target="_blank">
+        <div class="card-icon">📝</div>
+        <div class="card-label">Forms</div>
+        <div class="card-title">Forms &amp; Templates</div>
+        <div class="card-desc">Core operational forms — contact import template, walkthrough checklist, prospecting sheet, open house sign-ins, and team formation.</div>
+        <div class="card-tags"><span class="card-tag">Contact Import Template</span><span class="card-tag">Walkthrough Checklist</span><span class="card-tag">Prospecting Sheet</span><span class="card-tag">Open House Sign-Ins</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+      <a class="folder-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FReferral%20Fee%20Protocols" target="_blank">
+        <div class="card-icon">🤲</div>
+        <div class="card-label">Referrals</div>
+        <div class="card-title">Referral Fee Protocols</div>
+        <div class="card-desc">Referral fee policies and procedures. Documents coming soon — check back or contact DBRE leadership for current guidance.</div>
+        <div class="card-tags"><span class="card-tag">Coming soon</span></div>
+        <div class="card-cta">Open in Teams ↗</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 05 TRAINING LIBRARY -->
+  <div class="panel" id="panel-training">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">05 · The Training Library</div>
+      <h2>10 modules · Complete advisor curriculum</h2>
+      <div class="rule"></div>
+      <p>Start with Module 01 and work through in order for your onboarding. Each module folder contains your lesson video and any accompanying materials.</p>
+    </div>
+    <div class="module-grid">
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2001%20%C2%B7%20Welcome%20%26%20Orientation" target="_blank">
+        <div class="mod-num">01</div>
+        <div class="mod-body"><h4>Welcome &amp; Orientation</h4><p>Welcome to DBRE · Your Partnership · Digital Workspace · Getting Started Checklist</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2002%20%C2%B7%20Your%20Boardroom" target="_blank">
+        <div class="mod-num">02</div>
+        <div class="mod-body"><h4>Your Board</h4><p>Understanding your business dashboard and performance tracking.</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2003%20%C2%B7%20Your%20First%20Transaction" target="_blank">
+        <div class="mod-num">03</div>
+        <div class="mod-body"><h4>Your First Transaction</h4><p>Step-by-step guidance through your first listing or buyer transaction at DBRE.</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2004%20%C2%B7%20Client%20Communication" target="_blank">
+        <div class="mod-num">04</div>
+        <div class="mod-body"><h4>Client Communication</h4><p>Frameworks and scripts for client-facing communication at every stage.</p><div class="lesson-count">3 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2005%20%C2%B7%20Commission%2C%20Fees%20%26%20Advancement" target="_blank">
+        <div class="mod-num">05</div>
+        <div class="mod-body"><h4>Commission &amp; Compensation</h4><p>How your compensation works, splits, referral fees, and disbursement timelines.</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2006%20%C2%B7%20Operations%20%26%20Compliance" target="_blank">
+        <div class="mod-num">06</div>
+        <div class="mod-body"><h4>Operations</h4><p>Day-to-day operational standards and firm processes every advisor should know.</p><div class="lesson-count">2 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2007%20%C2%B7%20Growth%20%26%20Recognition" target="_blank">
+        <div class="mod-num">07</div>
+        <div class="mod-body"><h4>Growth &amp; Business Development</h4><p>Building your pipeline, growing your sphere, and developing your personal brand.</p><div class="lesson-count">1 lesson</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2008%20%C2%B7%20Prospecting%20%26%20Marketing%20and%20PRIORITY%20%E2%80%94%20Selling%20Season" target="_blank">
+        <div class="mod-num">08</div>
+        <div class="mod-body"><h4>Prospecting</h4><p>Lead generation strategies, outreach approaches, and prospecting workflows used at DBRE.</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2009%20%C2%B7%20Consultation%20Skills" target="_blank">
+        <div class="mod-num">09</div>
+        <div class="mod-body"><h4>Consultation Excellence</h4><p>Mastering the buyer and seller consultation — from preparation to close of meeting.</p><div class="lesson-count">2 lessons</div></div>
+      </a>
+
+      <a class="module-card" href="https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F05%20%C2%B7%20The%20Training%20Library%2FMODULE%2010%20%E2%80%94%20Leadership%20%26%20Growth" target="_blank">
+        <div class="mod-num">10</div>
+        <div class="mod-body"><h4>Leadership</h4><p>Developing as a leader within DBRE — mentorship, culture, and raising the standard.</p><div class="lesson-count">4 lessons</div></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- 06 FORMS & QUICK LINKS -->
+  <div class="panel" id="panel-forms">
+    <a href="#" class="back-link" onclick="showPanel('home'); return false;">← Back to home</a>
+    <div class="section-header">
+      <div class="eyebrow">06 · Forms &amp; Quick Links</div>
+      <h2>Advisor-Facing Forms</h2>
+      <div class="rule"></div>
+      <p>Direct links to all active DBRE advisor forms. Each form opens in Microsoft Forms. Contact DBRE Operations if you have questions about which form to use.</p>
+    </div>
+    <div class="card-grid two-col">
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/McSnHUtHFJ" target="_blank">
+        <div class="card-icon">📄</div>
+        <div class="form-name">Transaction Initiation Form</div>
+        <div class="card-desc">Submit a new transaction for processing. Required for all buyer and seller transactions at the point of contract execution.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/uyYM5WVeqJ" target="_blank">
+        <div class="card-icon">📋</div>
+        <div class="form-name">Contact List Request</div>
+        <div class="card-desc">Request a contact list import or update within Wise Agent CRM. Submitted to DBRE Operations for processing.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/tyYNZheDk2" target="_blank">
+        <div class="card-icon">✨</div>
+        <div class="form-name">DBRE Preferred Partner Nomination</div>
+        <div class="card-desc">Nominate a vendor for inclusion in the DBRE Preferred Partners Directory. All nominations reviewed by DBRE leadership.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/Zk9kxUhc55" target="_blank">
+        <div class="card-icon">🔁</div>
+        <div class="form-name">Inbound Referral Notification</div>
+        <div class="card-desc">Notify DBRE Operations of an inbound referral. Submit as soon as a referral is received and before any client contact is made.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/SDp2D1UiJD" target="_blank">
+        <div class="card-icon">👥</div>
+        <div class="form-name">DBRE Team Formation Application</div>
+        <div class="card-desc">Apply to form an official DBRE team. Reviewed by DBRE leadership prior to approval and team designation.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/nnPBBpiBqZ" target="_blank">
+        <div class="card-icon">🔐</div>
+        <div class="form-name">Advisor Assistant Access Request</div>
+        <div class="card-desc">Request Microsoft Teams and platform access for an advisor assistant. Subject to DBRE Operations approval.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+      <a class="forms-card" href="https://forms.cloud.microsoft/r/DaSgLu6ZjU" target="_blank">
+        <div class="card-icon">💰</div>
+        <div class="form-name">Commission Disbursement Authorization (CDA) Request</div>
+        <div class="card-desc">Submit a CDA request for commission disbursement at closing. Required for every transaction prior to the closing date.</div>
+        <div class="form-cta">Open Form ↗</div>
+      </a>
+
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Dana Blanks Real Estate™ <span>·</span> The Knowledge Vault <span>·</span> The Executive Suite <span>·</span> Internal Use Only</p>
+</footer>
+
+<script>
+  function showPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    const panels = ['home','blueprint','mastery','partners','resources','training','forms'];
+    document.querySelectorAll('.nav-tabs a').forEach((a, i) => {
+      a.classList.toggle('active', i === panels.indexOf(id));
+    });
+    document.getElementById('search-results').classList.remove('visible');
+    document.getElementById('search-input').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  const searchIndex = [
+    { title: 'Listing Excellence Workflow', section: 'blueprint', desc: 'Seller transactions consultation scripts marketing plans listing walkthroughs research guides', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FListing%20Excellence%20Workflow' },
+    { title: 'Land & Specialty Listings', section: 'blueprint', desc: 'Land transactions land seller consultation research checklists land marketing plans', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FLand%20%26%20Specialty%20Listings' },
+    { title: 'Buyer Excellence Workflows', section: 'blueprint', desc: 'Buyer transactions consultation scripts gallery protocol land buyer residential research', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FBuyer%20Excellence%20Workflows' },
+    { title: 'Dual Agent Workflows', section: 'blueprint', desc: 'Dual agency protocol representing both sides', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F01%20%C2%B7%20The%20Operational%20Blueprint%2FDual%20Agent%20Workflows' },
+    { title: 'Client Care Protocols', section: 'mastery', desc: 'Buyer care seller care advisor boardroom mindset excellence standards', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FClient%20Care%20Protocols' },
+    { title: 'Operational Compliance', section: 'mastery', desc: 'Official policies PDFs policy sources HTML forms acknowledgements compliance', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FOperational%20Compliance' },
+    { title: 'Financial Governance', section: 'mastery', desc: 'Wire transfer protocol advisor platform models commission disbursement', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F02%20%C2%B7%20The%20Mastery%20Gallery%2FFinancial%20Governance' },
+    { title: 'Preferred Partners Directory', section: 'partners', desc: 'Vendor directory closing attorneys lenders inspectors stagers contractors cleaners movers', url: 'https://dblanks2.github.io/Preferred-Partners-Directory/Preferred%20Partners%20Directory.html' },
+    { title: 'Preferred Partner Nomination', section: 'partners', desc: 'Nominate vendor artisan nomination form', url: 'https://forms.cloud.microsoft/r/tyYNZheDk2' },
+    { title: 'Onboarding & Platform Setup', section: 'resources', desc: 'Advisor platform models compensation fees tools setup guides profile setup', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FOnboarding%20%26%20Platform%20Setup' },
+    { title: 'Lead Generation & Distribution', section: 'resources', desc: 'Lead distribution policy lead gen plans scripts contact submission guide NC active broker list', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FLead%20Generation%20%26%20Distribution' },
+    { title: 'Business Planning', section: 'resources', desc: 'Advisor business plans goals planner buyer filing checklists seller filing checklists', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FBusiness%20Planning' },
+    { title: 'Forms & Templates', section: 'resources', desc: 'Contact import template walkthrough checklist prospecting sheet open house sign-ins', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FForms%20%26%20Templates' },
+    { title: 'Referral Fee Protocols', section: 'resources', desc: 'Referral fee policies procedures', url: 'https://danablanksrealestate.sharepoint.com/sites/DanaBlanksRealEstateInc/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000514FC83DC9FA804584285B55D73B8DC8&id=%2Fsites%2FDanaBlanksRealEstateInc%2FShared%20Documents%2F01%20%C2%B7%20The%20Knowledge%20Vault%2F04%20%C2%B7%20Advisor%20Resources%2FReferral%20Fee%20Protocols' },
+    { title: 'Transaction Initiation Form', section: 'forms', desc: 'Submit new transaction contract execution buyer seller processing', url: 'https://forms.cloud.microsoft/r/McSnHUtHFJ' },
+    { title: 'Contact List Request', section: 'forms', desc: 'CRM contact import update Wise Agent', url: 'https://forms.cloud.microsoft/r/uyYM5WVeqJ' },
+    { title: 'DBRE Preferred Partner Nomination', section: 'forms', desc: 'Nominate vendor preferred partners directory', url: 'https://forms.cloud.microsoft/r/tyYNZheDk2' },
+    { title: 'Inbound Referral Notification', section: 'forms', desc: 'Notify operations inbound referral received', url: 'https://forms.cloud.microsoft/r/Zk9kxUhc55' },
+    { title: 'DBRE Team Formation Application', section: 'forms', desc: 'Apply form official DBRE team', url: 'https://forms.cloud.microsoft/r/SDp2D1UiJD' },
+    { title: 'Advisor Assistant Access Request', section: 'forms', desc: 'Request Teams platform access assistant', url: 'https://forms.cloud.microsoft/r/nnPBBpiBqZ' },
+    { title: 'Commission Disbursement Authorization CDA Request', section: 'forms', desc: 'CDA request commission disbursement closing', url: 'https://forms.cloud.microsoft/r/DaSgLu6ZjU' }
+  ];
+
+  const sectionLabels = { blueprint: '01 · Operational Blueprint', mastery: '02 · Mastery Gallery', partners: '03 · Preferred Partners', resources: '04 · Advisor Resources', training: '05 · Training Library', forms: '06 · Forms & Quick Links' };
+
+  function handleSearch(q) {
+    const resultsEl = document.getElementById('search-results');
+    const outputEl = document.getElementById('search-output');
+    q = q.trim().toLowerCase();
+    if (!q) { resultsEl.classList.remove('visible'); return; }
+    resultsEl.classList.add('visible');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const matches = searchIndex.filter(item => item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q));
+    if (!matches.length) { outputEl.innerHTML = '<div class="no-results">No results found for "<strong>' + q + '</strong>"</div>'; return; }
+    const html = matches.map(m => '<a class="folder-card" href="' + m.url + '" target="_blank" style="margin-bottom:12px;display:flex;flex-direction:column;gap:8px;"><div class="card-label">' + sectionLabels[m.section] + '</div><div class="card-title">' + m.title + '</div><div class="card-desc">' + m.desc + '</div><div class="card-cta">Open ↗</div></a>').join('');
+    outputEl.innerHTML = '<div style="margin-bottom:16px;font-size:0.75rem;color:var(--text-muted);">' + matches.length + ' result' + (matches.length > 1 ? 's' : '') + ' for "<strong>' + q + '</strong>"</div><div class="card-grid">' + html + '</div>';
+  }
+</script>
+
+</body>
+</html>
